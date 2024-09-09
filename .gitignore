@@ -1,0 +1,40 @@
+# Dependency directories
+/node_modules
+
+# Build output
+/dist
+
+# IDE and editor files
+/.vscode
+/.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+
+# Logs
+/logs
+*.log
+
+# Testing
+/coverage
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Miscellaneous
+.DS_Store
+Thumbs.db
+
+# SSL certificate files
+/*.key
+/*.pem
+/*.csr
+/*.crt
+ssl/

@@ -1,0 +1,20 @@
+From: sender@example.com
+To: recipient@example.com
+Subject: Test Email
+Date: Wed, 08 Sep 2021 15:55:23 +0000
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="boundary123"
+
+--boundary123
+Content-Type: text/plain; cha+rset="UTF-8"
+
+Hello, this is the email body.
+
+--boundary123
+Content-Type: application/octet-stream; name="attachment.txt"
+Content-Disposition: attachment; filename="attachment.txt"
+Content-Transfer-Encoding: base64
+
+SGVsbG8gd29ybGQgdGV4dCBmaWxlCg==
+
+--boundary123--

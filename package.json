@@ -1,0 +1,27 @@
+{
+  "name": "node-mail-new",
+  "version": "0.1.0",
+  "description": "a mail server for node",
+  "author": "LittleJiu",
+  "license": "MIT",
+  "main": "main.js",
+  "devDependencies": {
+    "@types/mailparser": "^3.4.4",
+    "@types/smtp-server": "^3.5.10",
+    "tsc": "^2.0.4",
+    "typescript": "^5.5.4"
+  },
+  "scripts": {
+    "dev": "tsc && node dist/main.js",
+    "build": "tsc",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "mailcomposer": "^4.0.2",
+    "mailparser": "^3.7.1",
+    "nodemailer": "^6.9.15",
+    "smtp-server": "^3.13.5",
+    "winston": "^3.14.2"
+  }
+}
