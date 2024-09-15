@@ -141,8 +141,6 @@ export class IMAPConnection extends EventEmitter {
     }
 
     _onCommand(command: Buffer, callback: () => void) {
-        console.log((command || '').toString().split(" "));
-        
         const [tag, cmd, ...args] = (command || '').toString().split(" ");
 
         if(!this._ready){
@@ -161,8 +159,6 @@ export class IMAPConnection extends EventEmitter {
             handler = this._nextHandler;
             this._nextHandler = false;
         } else {
-            console.log(cmd);
-            
             handler = hd[cmd.toUpperCase()];
         }
 

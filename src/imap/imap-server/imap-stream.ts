@@ -45,7 +45,7 @@ export class IMAPStream extends Writable {
 
             const match = newLineRegex.exec(data);
             if(match) {
-                line = data.substr(readPos, match.index = readPos);
+                line = data.substr(readPos, match.index - readPos);
                 readPos += line.length + match[0].length;
             } else {
                 this._reaminder = readPos < data.length ? data.substr(readPos) : '';
