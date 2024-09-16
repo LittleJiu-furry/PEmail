@@ -38,3 +38,9 @@ Thumbs.db
 /*.csr
 /*.crt
 ssl/
+
+# Config files
+*/conf/
+*/config/
+
+

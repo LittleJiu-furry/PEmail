@@ -1,7 +1,8 @@
 import type { SMTPServerAuthentication, SMTPServerOptions } from 'smtp-server'
 import axios from 'axios'
-import { simpleParser } from 'mailparser'
-import * as emailUtil from './oncemail'
+import nodemailer from 'nodemailer'
+import log from "../log"
+import { confs } from '../conf'
 
 const opts: SMTPServerOptions = {
     onAuth: async (auth, session, callback) => {
@@ -42,34 +43,56 @@ const opts: SMTPServerOptions = {
         })
         stream.on('end', async () => {
             // 处理数据
-            const parsed = await simpleParser(data)
-                .then(parsed => parsed)
-            const instance = emailUtil.getInstance(session.id)
-            instance.setSubject(parsed.subject || '')
-            instance.setDate(parsed.date ? parsed.date.toDateString() : new Date().toUTCString())
-            instance.setMIMEVersion('1.0')
-            instance.setBoundary(`${Math.random().toString(36).substring(2, 15)}-${session.id}`)
-            instance.setBody({
-                contentType: "text/html; charset=utf-8",
-                content: parsed.html
-            })
+            
              // 返回信息
             callback(null)
         })
 
     },
     onMailFrom: (address, session, callback) => {
-        emailUtil.getInstance(session.id).setFrom(address.address)
-        callback()
+        log.debug("Mail from " + session.user)
+        // 是否处于登录状态
+        if (!session.user) {
+            // 非登录态，来自外域的链接
+            // 来自外域的链接
+            // 对整体进行验证, 验证发件人是否位于全局黑名单和用户黑名单中
+            
+            // if(isBlack(address.address)){
+            //     return callback(new Error('Blacklist user, reject email'))
+            // }
+
+            // 从发件人地址中提取域名
+            // 判断是否位于全局黑名单域名和用户黑名单域名中
+            const [_, domain] = address.address.split('@')
+            // if(isBlack(domain)){
+            //     return callback(new Error('Blacklist domain, reject email'))
+            // }
+            return callback()
+
+        } else {
+            // 登录态，来自本域的链接
+            const userEmail = `${session.user}@${confs.myDomain}`
+            // 本域用户在发送时不能伪造发件人
+            if (address.address !== userEmail) {
+                return callback(new Error('Sender address must be the same as the login user'))
+            }
+            return callback()
+        }
     },
     onRcptTo: (address, session, callback) => {
-        emailUtil.getInstance(session.id).setTo(address.address)
+        // 是否处于登录状态
+        if (!session.user){
+
+        } else {
+            
+        }
         callback()
     },
     onClose: (session) => {
         
     },
     onConnect: (session, callback) => {
+        log.debug("SMTP Connection from " + session.hostNameAppearsAs)
         callback()
     },
 }
