@@ -36,7 +36,45 @@ export interface IMAPServerOptions extends tls.TlsOptions {
      */
     hideSTARTTLS?: boolean;
 
-    onAuth?: (username: string, password: string) => boolean;
+    /**
+     * If set it, ther server will use this logger
+     */
+    debugLogger?: any;
+
+    onConnect?: (session: IMAPSession) => void;
+    onError?: (err: Error, session: IMAPSession) => void;
+    onAuth?: (auth: AuthObject, session: IMAPSession, callback: (err: Error | null, respone:{user: string}) => void) => void;
+    onClose?: (session: IMAPSession) => void;
+    onCheck?: (session: IMAPSession, callback: (err?: Error | null) => void) => void;
+    onBoxClose?: (session: IMAPSession, callback: (err?: Error | null) => void) => void;
+    onCopy?: (session: IMAPSession, sourceMailbox: string, destinationMailbox: string, callback: (err?: Error | null) => void) => void;
+    onCreate?: (session: IMAPSession, mailbox: string, callback: (err?: Error | null) => void) => void;
+    onDelete?: (session: IMAPSession, mailbox: string, callback: (err?: Error | null) => void) => void;
+    
+    onExamine?: (session: IMAPSession, mailbox: string, callback: (err?: Error | null, result?: {
+        exists?: number,
+        recent?: number,
+        unseen?: number,
+        uidValidity?: number,
+        uidNext?: number,
+        flags?: string[],
+    }) => void) => void;
+    onExpunge?: (session: IMAPSession, callback: (deletedList: number[], err?: Error | null) => void) => void;
+    onFetch?: (session: IMAPSession, sequenceSet: number[] | "*", items: string[], callback: (err?: Error | null, result?: {
+        seq: number,
+        message: string
+    }[]) => void) => void;
+    
+    
+    onLogout?: (session: IMAPSession, callback: (err?: Error | null) => void) => void;
+
+}
+
+interface AuthObject {
+    user: string;
+    password: string;
+    password?: string;
+    accessToken?: string;
 }
 
 type Socket = net.Socket | tls.TLSSocket;
@@ -54,5 +92,6 @@ export interface IMAPSession {
     localPort?: number;
     remoteAddress?: string;
     remotePort?: number;
+    currentBox?: string;
     
 }

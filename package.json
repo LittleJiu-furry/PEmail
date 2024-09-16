@@ -17,7 +17,9 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
+    "@types/express": "^4.17.21",
     "axios": "^1.7.7",
+    "express": "^4.21.0",
     "mailcomposer": "^4.0.2",
     "mailparser": "^3.7.1",
     "nodemailer": "^6.9.15",

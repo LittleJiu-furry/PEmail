@@ -14,36 +14,14 @@ export class IMAPConnection extends EventEmitter {
     _ready: boolean;
     _nextHandler: boolean | ((...args: any[]) => void);
     _unrecognizedCommandsCount: number;
-    _needLoginCommands: string[] = [
-        "SELECT",
-        "EXAMINE",
-        "CREATE",
-        "DELETE",
-        "RENAME",
-        "SUBSCRIBE",
-        "UNSUBSCRIBE",
-        "LIST",
-        "LSUB",
-        "STATUS",
-        "APPEND",
-        "CHECK",
-        "CLOSE",
-        "EXPUNGE",
-        "SEARCH",
-        "FETCH",
-        "STORE",
-        "COPY",
-        "UID",
-        "NOOP",
-        "LOGOUT",
-    ];
-    _blockedCommands: string[] = [];
-
+    _logger: any;
+    _authed: boolean;
 
     constructor(
         server: IMAPServer,
         socket: Socket,
-        options: {[key: string]: any}
+        options: {[key: string]: any},
+        logger: any
     ) {
         super();
 
@@ -58,6 +36,8 @@ export class IMAPConnection extends EventEmitter {
         this._nextHandler = false;
         this._unrecognizedCommandsCount = 0;
         this.session = {}
+        this._logger = logger;
+        this._authed = false;
     
     
     }
@@ -75,7 +55,7 @@ export class IMAPConnection extends EventEmitter {
     }
 
     connectionReady(next?: () => void) {
-        this.send("OK IMAP4rev1 Service Ready, Fur Email Server Welcome You");
+        this.send(`OK IMAP4rev1 Service Ready, ${this._server.options.servername} Welcome You`);
         this._ready = true;
         this.session = {
             ...this.session,
@@ -85,13 +65,7 @@ export class IMAPConnection extends EventEmitter {
             remoteAddress: this._socket.remoteAddress,
             remotePort: this._socket.remotePort,
         }
-        this.emit("connect", {
-            id: this.id,
-            localAddress: this._socket.localAddress,
-            localPort: this._socket.localPort,
-            remoteAddress: this._socket.remoteAddress,
-            remotePort: this._socket.remotePort,
-        })
+        this.emit("connect", this.session);
         if(next) {
             next();
         }
@@ -132,7 +106,7 @@ export class IMAPConnection extends EventEmitter {
     }
 
     _onError(err: Error) {
-        this.emit("error", err);
+        this.emit("error", this.session, err);
     }
 
     _onTimeout() {
@@ -141,20 +115,26 @@ export class IMAPConnection extends EventEmitter {
     }
 
     _onCommand(command: Buffer, callback: () => void) {
+        const logger = this._logger || {
+            debug: (...args: any[]) => void 0,
+        };
         const [tag, cmd, ...args] = (command || '').toString().split(" ");
-
+        logger.debug(`C: ${command.toString()}`);
         if(!this._ready){
             this.send("BAD not ready", tag);
-            this._onClose();
+            return this._onClose();
+            
         }
 
         if (/^(OPTIONS|GET|HEAD|POST|PUT|DELETE|TRACE|CONNECT) \/.* HTTP\/\d\.\d$/i.test(cmd)) {
-            return this.send('BAD Invalid IMAP command, HTTP requests not allowed', tag);
+            this.send('BAD Invalid IMAP command, HTTP requests not allowed', tag);
+            return this._onClose();
         }
 
-        callback = callback || (() => false);
+        callback = callback || ((() => false));
 
         let handler: (...args: any[]) => void;
+        
         if (this._nextHandler && typeof this._nextHandler === "function") {
             handler = this._nextHandler;
             this._nextHandler = false;
@@ -169,14 +149,16 @@ export class IMAPConnection extends EventEmitter {
                 this._onClose();
                 return;
             }
+            this.send("Caution! Try unrecognized command too many times will be kicked out")
             this.send("BAD Invalid command", tag);
             return setImmediate(callback);
         }
 
         // 封锁用户在未登录状态下的指令
         if(
-            !this.session.user &&
-            !["LOGIN", "AUTHENTICATE", "CAPABILITY", "NOOP", "LOGOUT"].includes(cmd)
+            !this._authed &&
+            cmd &&
+            !["LOGIN", "AUTHENTICATE", "CAPABILITY", "NOOP", "LOGOUT"].includes(cmd.toUpperCase())
         ) {
             this._unrecognizedCommandsCount++;
             if(this._unrecognizedCommandsCount > 10) {
@@ -184,18 +166,12 @@ export class IMAPConnection extends EventEmitter {
                 this._onClose();
                 return;
             }
-        }
-
-        if(
-            !this.session.user &&
-            cmd && 
-            this._needLoginCommands.includes(cmd)
-        ) {
+            this.send("Caution! Try unrecognized command too many times will be kicked out")
             this.send("NO Please login first", tag);
             return setImmediate(callback);
         }
-
-        handler.call(this, command, callback, this);
+        
+        handler.call(this, command.toString(), callback, this);
     }
 
     _onEvent(eventName: string, ...args: any[]) {
@@ -203,7 +179,7 @@ export class IMAPConnection extends EventEmitter {
     }
 
     _isSuport(commandName: string) {
-        return this._blockedCommands.includes(commandName);
+        return this._server.disabledCommands.includes(commandName);
     }
 
 }

@@ -7,4 +7,8 @@ smtp.start({
     cert_path: "../../ssl/cert.pem",
 })
 
-imap.start()
+imap.start({
+    serverName: "Fur Email Server",
+    key_path: "../../ssl/key.pem",
+    cert_path: "../../ssl/cert.pem",
+})

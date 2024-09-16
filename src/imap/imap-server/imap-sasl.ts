@@ -1,7 +1,7 @@
 import type { IMAPConnection } from "./imap-connection";
 import type { Socket } from "./types";
 export class IMAP_SASL {
-    static createPlainAuth(args:any[], callback:() => void) {
+    static createPlainAuth(args:any[]) {
         const [tag, cmd, mechanism] = args;
         const connection = this as unknown as IMAPConnection;
         connection._socket.write("+ \r\n");
@@ -39,7 +39,7 @@ export class IMAP_SASL {
         )
     }
 
-    static createLoginAuth(args:any[], callback:() => void) {
+    static createLoginAuth(args:any[]) {
         const [tag, cmd, mechanism] = args;
         const connection = this as unknown as IMAPConnection;
         connection._socket.write("+ \r\n");
@@ -60,6 +60,7 @@ export class IMAP_SASL {
 
         connection._socket.write("+ \r\n");
         connection._nextHandler = IMAP_SASL.SASL_LOGIN_PASS.bind(connection, tag, username);
+        return cb();
     }
 
     static SASL_LOGIN_PASS(tag:string, username: string, command: string, cb: () => void, connection: IMAPConnection) {
@@ -73,7 +74,6 @@ export class IMAP_SASL {
             connection.send("NO AUTHENTICATE failed", tag);
             return cb();
         }
-
         connection._server.onAuth(
             {
                 method: "AUTHENTICATE LOGIN",
@@ -86,7 +86,8 @@ export class IMAP_SASL {
                     connection.send("NO AUTHENTICATE failed, " + err.message, tag);
                     return cb();
                 }
-                connection.session.user = user;
+                connection.session.user = user.user;
+                connection._authed = true;
                 connection.send("OK AUTHENTICATE completed", tag);
                 return cb();
             }

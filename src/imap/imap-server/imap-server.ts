@@ -6,12 +6,12 @@ import os from "os";
 import crypto from "crypto";
 import { IMAPConnection } from "./imap-connection";
 
+
 export class IMAPServer extends EventEmitter {
     options: IMAPServerOptions;
     server: net.Server | tls.Server;
     disabledCommands: string[];
     connections: Set<any>;
-
 
     constructor(options?: IMAPServerOptions) {
         super();
@@ -30,6 +30,7 @@ export class IMAPServer extends EventEmitter {
         if (this.options.hideSTARTTLS) {
             this.disabledCommands.push("STARTTLS");
         }
+        
 
         // Create server
         if (this.options.useSSL) {
@@ -93,12 +94,26 @@ export class IMAPServer extends EventEmitter {
             this.options.hideSTARTTLS = this.options.hideSTARTTLS || false;
         }
 
+        // set debugLogger
+        this.options.debugLogger = this.options.debugLogger || null;
+
 
         
     }
 
     setListenFunctions() {
-
+        // 提取opt中所有的on开头的函数
+        const opt = this.options;
+        const keys = Object.keys(opt);
+        const listenFunctions = keys.filter(key => key.startsWith("on"));
+        listenFunctions.forEach((key) => {
+            const fn = (opt as any)[key];
+            // 判断是否为函数
+            if(fn && typeof fn === "function") {
+                (this as any)[key] = (opt as any)[key];
+            }
+            // 否则不替换，使用类内默认的函数
+        });
     }
     
     _initSocket(
@@ -120,13 +135,36 @@ export class IMAPServer extends EventEmitter {
         socket: net.Socket | tls.TLSSocket,
         socketOptions: {},
     ) {
-        const connection = new IMAPConnection(this, socket, socketOptions);
+        const connection = new IMAPConnection(this, socket, socketOptions, this.options.debugLogger);
         this.connections.add(connection);
-        connection.on("error", (err) => this._onError(err))
+        connection.on("error", (session, err) => this._onError(session, err))
         connection.on("connect", (data) => this._onClientConnect(data));
         connection.init();
     }
     
+    onConnect(session: IMAPSession) {
+        // do nothing
+    }
+    
+    onError(session: IMAPSession,err: Error) {
+        this.options.debugLogger && this.options.debugLogger.error(err.message);
+    }
+
+    // Event Emiters
+    _onError(session:IMAPSession, err: Error) {
+        this.onError(session, err);
+    }
+
+    _onClientConnect(data: any) {
+        this.onConnect(data);
+    }
+
+
+    listen(...args: any[]) {
+        this.server.listen(...args);
+    }
+
+    // IMAPServer Handlers
     onClose(session: any) {
         // do nothing
     }
@@ -139,25 +177,94 @@ export class IMAPServer extends EventEmitter {
             accessToken?: string,
         },
         session: IMAPSession,
-        callback: (err: Error | null, user: any) => void
+        callback: (err?: Error | null, respone?: any) => void
     ) {
         setImmediate(callback, null, {user: auth.username});
     }
 
-
-    // Event Emiters
-    _onError(err: Error) {
-        this.emit("error", err);
+    onCheck(
+        session: IMAPSession, 
+        callback: (err?: Error | null) => void
+    ) {
+        setImmediate(callback);
     }
 
-    _onClientConnect(data: any) {
-        this.emit("connect", data);
+    onBoxClose(
+        session: IMAPSession,
+        callback: (err?: Error | null) => void
+    ) {
+        setImmediate(callback);
+    }
+
+    onCopy(
+        session: IMAPSession,
+        sourceMailbox: string,
+        destinationMailbox: string,
+        callback: (err?: Error | null) => void
+    ) {
+        setImmediate(callback, new Error("Not implemented"));
+    }
+
+    onCreate(
+        session: IMAPSession,
+        mailbox: string,
+        callback: (err?: Error | null) => void
+    ) {
+        setImmediate(callback, new Error("Not implemented"));
+    }
+
+    onDelete(
+        session: IMAPSession,
+        mailbox: string,
+        callback: (err?: Error | null) => void
+    ) {
+        setImmediate(callback, new Error("Not implemented"));
+    }
+
+    onExamine(
+        session: IMAPSession,
+        mailbox: string,
+        callback: (err?: Error | null, result?: {
+            exists?: number,
+            recent?: number,
+            unseen?: number,
+            uidValidity?: number,
+            uidNext?: number,
+            flags?: string[],
+        }) => void
+    ) {
+        setImmediate(callback, new Error("Not implemented"));
+    }
+
+    onExpunge(
+        session: IMAPSession,
+        callback: (deletedList: number[], err?: Error | null) => void
+    ) {
+        setImmediate(callback, [], new Error("Not implemented"));
+    }
+
+    onFetch(
+        session: IMAPSession,
+        sequenceSet: number[] | "*",
+        items: string[],
+        callback: (err?: Error | null, result?: {
+            seq: number,
+            message: string
+        }[]) => void
+    ) {
+        setImmediate(callback, new Error("Not implemented"));
     }
 
 
-    listen(...args: any[]) {
-        this.server.listen(...args);
+
+    onLogout(
+        session: IMAPSession,
+        callback: (err?: Error | null) => void
+    ) {
+        setImmediate(callback);
     }
+
+
 
     
 
