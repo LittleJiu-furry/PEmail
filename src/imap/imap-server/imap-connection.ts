@@ -4,6 +4,7 @@ import { EventEmitter } from "node:events";
 import crypto from "crypto";
 import { IMAPStream } from "./imap-stream";
 import { handler as hd } from "./imap-handler";
+import log from "../../log";
 
 export class IMAPConnection extends EventEmitter {
     id: string;
@@ -12,6 +13,7 @@ export class IMAPConnection extends EventEmitter {
     session: IMAPSession;
     _parser: IMAPStream
     _ready: boolean;
+    _upgrading: boolean;
     _nextHandler: boolean | ((...args: any[]) => void);
     _unrecognizedCommandsCount: number;
     _logger: any;
@@ -38,6 +40,7 @@ export class IMAPConnection extends EventEmitter {
         this.session = {}
         this._logger = logger;
         this._authed = false;
+        this._upgrading = false;
     
     
     }
@@ -79,6 +82,7 @@ export class IMAPConnection extends EventEmitter {
         }
 
         if(this._socket && !this._socket.destroyed) {
+            log.debug(`[Connection: ${this.session.connectionID}] S: ${data}`);
             this._socket.write(data + "\r\n");
         }
     }
@@ -119,7 +123,8 @@ export class IMAPConnection extends EventEmitter {
             debug: (...args: any[]) => void 0,
         };
         const [tag, cmd, ...args] = (command || '').toString().split(" ");
-        logger.debug(`C: ${command.toString()}`);
+        logger.debug(`[Connection: ${this.session.connectionID}] C: ${command.toString()}`);
+
         if(!this._ready){
             this.send("BAD not ready", tag);
             return this._onClose();
@@ -132,6 +137,10 @@ export class IMAPConnection extends EventEmitter {
         }
 
         callback = callback || ((() => false));
+        if(this._upgrading){
+            return setImmediate(callback);
+        }
+        
 
         let handler: (...args: any[]) => void;
         

@@ -1,8 +1,12 @@
-import type { SMTPServerAuthentication, SMTPServerOptions } from 'smtp-server'
+import type { SMTPServerOptions } from 'smtp-server'
 import axios from 'axios'
-import nodemailer from 'nodemailer'
 import log from "../log"
 import { confs } from '../conf'
+import { simpleParser } from 'mailparser'
+import nodemailer from 'nodemailer'
+import fs from 'fs'
+// @ts-expect-error
+import spfCheck from 'spf-check'
 
 const opts: SMTPServerOptions = {
     onAuth: async (auth, session, callback) => {
@@ -38,19 +42,81 @@ const opts: SMTPServerOptions = {
     },
     onData: (stream, session, callback) => {
         let data = ''
+        const transport = nodemailer.createTransport({
+            streamTransport: true,
+            buffer: true
+        })
         stream.on('data', (chunk) => {
             data += chunk
         })
         stream.on('end', async () => {
             // 处理数据
-            
-             // 返回信息
-            callback(null)
+            const mail = await simpleParser(data)
+            let sendInfo:{
+                from: string,
+                to: string[]
+            } = {
+                from: "",
+                to: []
+            }
+            // 校验发件人
+            if (!mail.from) {
+                sendInfo.from = session.envelope.mailFrom ? session.envelope.mailFrom.address.toString() : ''
+            } else {
+                sendInfo.from = mail.from.value[0].address as unknown as string
+            }
+
+            // 检查收件人
+            if(!mail.to){
+                sendInfo.to = session.envelope.rcptTo ? session.envelope.rcptTo.map(v => v.address) : []
+            } else {
+                if(Array.isArray(mail.to)){
+                    sendInfo.to = mail.to.map(v => v.value.map(a => a.address as unknown as string)).flat()
+                } else {
+                    sendInfo.to = mail.to.value.map(v => v.address as unknown as string)
+                }
+            }
+
+            transport.sendMail({
+                from: sendInfo.from,
+                to: sendInfo.to,
+                subject: mail.subject || '',
+                html: mail.html || mail.text || '',
+                // attachments: mail.attachments.map(fileInfo => {
+                //     return {
+                //         filename: fileInfo.filename,
+                //         content: fileInfo.content,
+                //         contentType: fileInfo.contentType
+                //     }
+                // })
+            }, (err, info) => {
+                if (err) {
+                    log.error(err)
+                    return callback(err)
+                }
+                fs.writeFileSync("mail.eml", info.message.toString())
+                return callback(null)
+            })
         })
 
     },
-    onMailFrom: (address, session, callback) => {
+    onMailFrom: async (address, session, callback) => {
         log.debug("Mail from " + session.user)
+        const SPFCheck = async (domain: string, ip:string): Promise<{
+            pass: boolean,
+            state: string
+        }> => {
+            return new Promise(async (resolve) => {
+                
+                const result = spfCheck(ip, domain)
+                resolve({
+                    pass: result == spfCheck.Pass,
+                    state: await result
+                })
+
+                
+            })
+        }
         // 是否处于登录状态
         if (!session.user) {
             // 非登录态，来自外域的链接
@@ -67,12 +133,18 @@ const opts: SMTPServerOptions = {
             // if(isBlack(domain)){
             //     return callback(new Error('Blacklist domain, reject email'))
             // }
-            return callback()
+            
+            // 对来信的外域用户进行SPF验证
+            const SPF = await SPFCheck(domain, session.remoteAddress)
+            if(SPF.pass){
+                return callback()
+            } 
+            return callback(new Error('SPF check failed, reject email, reason: SPF check returns ' + SPF.state))
 
         } else {
             // 登录态，来自本域的链接
-            const userEmail = `${session.user}@${confs.myDomain}`
             // 本域用户在发送时不能伪造发件人
+            const userEmail = address.address.trim()
             if (address.address !== userEmail) {
                 return callback(new Error('Sender address must be the same as the login user'))
             }
@@ -82,9 +154,11 @@ const opts: SMTPServerOptions = {
     onRcptTo: (address, session, callback) => {
         // 是否处于登录状态
         if (!session.user){
-
-        } else {
-            
+            // 没登陆，来自外域的链接
+            // 收件人地址只能在本域
+            if (address.address.split('@')[1] !== confs.myDomain) {
+                return callback(new Error('Reject email which not send to this domain'))
+            }
         }
         callback()
     },
@@ -95,6 +169,7 @@ const opts: SMTPServerOptions = {
         log.debug("SMTP Connection from " + session.hostNameAppearsAs)
         callback()
     },
+    
 }
 
 export default opts

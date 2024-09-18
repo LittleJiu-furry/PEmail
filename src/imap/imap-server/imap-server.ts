@@ -147,7 +147,7 @@ export class IMAPServer extends EventEmitter {
     }
     
     onError(session: IMAPSession,err: Error) {
-        this.options.debugLogger && this.options.debugLogger.error(err.message);
+        this.options.debugLogger && this.options.debugLogger.error(`[Connection: ${session.connectionID}] ${err.message}`);
     }
 
     // Event Emiters
@@ -167,6 +167,18 @@ export class IMAPServer extends EventEmitter {
     // IMAPServer Handlers
     onClose(session: any) {
         // do nothing
+    }
+
+    onAppend(
+        session: IMAPSession,
+        mailbox: string,
+        flags: string[],
+        date: string,
+        size: number,
+        message: string,
+        callback: (err?: Error | null) => void
+    ) {
+        setImmediate(callback);
     }
 
     onAuth(
@@ -255,7 +267,39 @@ export class IMAPServer extends EventEmitter {
         setImmediate(callback, new Error("Not implemented"));
     }
 
+    onIdle(
+        session: IMAPSession,
+        callback: (msg: string, err?: Error | null) => void
+    ) {
+        setImmediate(callback, "", new Error("Not implemented"));
+    }
 
+    onList(
+        session: IMAPSession,
+        reference: string,
+        mailbox: string,
+        callback: (err?: Error | null, result?: {
+            hasChildren: boolean,
+            canSelect: boolean,
+            marked: boolean,
+            noinferiors: boolean,
+            splitChar: string,
+            name: string,
+        }[]) => void
+    ) {
+        if(mailbox === "*") {
+            return callback(null, [{
+                hasChildren: false,
+                canSelect: true,
+                marked: false,
+                noinferiors: true,
+                splitChar: "/",
+                name: "INBOX",
+            }]);
+        } else {
+            setImmediate(callback, new Error("Not implemented"));
+        }
+    }
 
     onLogout(
         session: IMAPSession,
@@ -264,6 +308,72 @@ export class IMAPServer extends EventEmitter {
         setImmediate(callback);
     }
 
+    onRename(
+        session: IMAPSession,
+        oldMailbox: string,
+        newMailbox: string,
+        callback: (err?: Error | null) => void
+    ) {
+        setImmediate(callback, new Error("Not implemented"));
+    }
+
+    onSearch(
+        session: IMAPSession,
+        searchArgs: string[],
+        callback: (err?: Error | null, result?: number[]) => void
+    ) {
+        setImmediate(callback, new Error("Not implemented"));
+    }
+
+    onSelect(
+        session: IMAPSession,
+        mailbox: string,
+        callback: (err?: Error | null, result?: {
+            exists?: number,
+            recent?: number,
+            unseen?: number,
+            uidValidity?: number,
+            uidNext?: number,
+            flags?: string[],
+        }) => void
+    ) {
+        if(mailbox === "INBOX") {
+            return callback(null, {
+                exists: 0,
+                recent: 0,
+                unseen: 0,
+                uidValidity: 0,
+                uidNext: 0,
+                flags: [],
+            });
+        }
+        setImmediate(callback, new Error("Not implemented"));
+    }
+
+    onStatus(
+        session: IMAPSession,
+        mailbox: string,
+        items: string[],
+        callback: (err?: Error | null, result?: {
+            item: string,
+            value: string | number
+        }[]) => void
+    ) {
+        setImmediate(callback, new Error("Not implemented"));
+    }
+
+    onStore(
+        session: IMAPSession,
+        sequenceSet: number[] | "*",
+        action: string,
+        flags: string[],
+        callback: (err?: Error | null, result?: {
+            id: number,
+            flags: string[]
+        }[]) => void
+    ) {
+        setImmediate(callback, new Error("Not implemented"));
+    }
 
 
     

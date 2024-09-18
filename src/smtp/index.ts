@@ -3,6 +3,7 @@ import log from "./../log"
 import fs from "fs";
 import path from "path";
 import opts from "./opts";
+import { Console } from "winston/lib/winston/transports";
 
 export const start = ({
     serverName = "",
@@ -24,6 +25,7 @@ export const start = ({
         onRcptTo: opts.onRcptTo,
         onClose: opts.onClose,
         onConnect: opts.onConnect,
+        
         
     })
     

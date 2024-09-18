@@ -34,6 +34,7 @@ export class IMAP_SASL {
                 }
                 connection.session.user = user;
                 connection.send("OK AUTHENTICATE completed", tag);
+                connection._authed = true;
                 return cb();
             }
         )
@@ -87,8 +88,8 @@ export class IMAP_SASL {
                     return cb();
                 }
                 connection.session.user = user.user;
-                connection._authed = true;
                 connection.send("OK AUTHENTICATE completed", tag);
+                connection._authed = true;
                 return cb();
             }
         )

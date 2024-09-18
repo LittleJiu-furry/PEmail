@@ -43,6 +43,7 @@ export interface IMAPServerOptions extends tls.TlsOptions {
 
     onConnect?: (session: IMAPSession) => void;
     onError?: (err: Error, session: IMAPSession) => void;
+    onAppend?: (session: IMAPSession, mailbox: string, flags: string[], date: Date, message: string, callback: (err?: Error | null) => void) => void;
     onAuth?: (auth: AuthObject, session: IMAPSession, callback: (err: Error | null, respone:{user: string}) => void) => void;
     onClose?: (session: IMAPSession) => void;
     onCheck?: (session: IMAPSession, callback: (err?: Error | null) => void) => void;
@@ -64,9 +65,39 @@ export interface IMAPServerOptions extends tls.TlsOptions {
         seq: number,
         message: string
     }[]) => void) => void;
-    
-    
+    onIdle?: (session: IMAPSession, callback: (msg: string, err?: Error | null) => void) => void;
+    onList?: (session: IMAPSession, reference: string, mailbox: string, callback: (err?: Error | null, result?: {
+        hasChildren: boolean,
+        canSelect: boolean,
+        marked: boolean,
+        noinferiors: boolean,
+        splitChar: string,
+        name: string,
+    }[]) => void) => void;
     onLogout?: (session: IMAPSession, callback: (err?: Error | null) => void) => void;
+    onRename?: (session: IMAPSession, oldMailbox: string, newMailbox: string, callback: (err?: Error | null) => void) => void;
+    onSearch?: (session: IMAPSession, searchArgs: string[], callback: (err?: Error | null, result?: number[]) => void) => void;
+    onSelect?: (session: IMAPSession, mailbox: string, callback: (err?: Error | null, result?: {
+        exists?: number,
+        recent?: number,
+        unseen?: number,
+        uidValidity?: number,
+        uidNext?: number,
+        flags?: string[],
+    }) => void) => void;
+    onStatus?: (session: IMAPSession, mailbox: string, items: string[], callback: (err?: Error | null, result?: {
+        item: string,
+        value: string | number
+    }[]) => void) => void;
+    onStore?: (session: IMAPSession, sequenceSet: number[] | "*", mode: string, items: string[], callback: (err?: Error | null, result?: {
+        id: number,
+        flags: string[]
+    }[]) => void) => void;
+
+
+
+
+
 
 }
 

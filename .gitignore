@@ -43,4 +43,5 @@ ssl/
 */conf/
 */config/
 
-
+# Test files
+/test

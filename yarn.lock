@@ -605,7 +605,7 @@ inherits@2.0.4, inherits@^2.0.3:
   resolved "https://mirrors.cloud.tencent.com/npm/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
-ipaddr.js@1.9.1:
+ipaddr.js@1.9.1, ipaddr.js@^1.2.0, ipaddr.js@^1.8.1:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/ipaddr.js/-/ipaddr.js-1.9.1.tgz#bff38543eeb8984825079ff3a2a8e6cbd46781b3"
   integrity sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==
@@ -700,6 +700,11 @@ linkify-it@5.0.0:
   integrity sha512-5aHCbzQRADcdP+ATqnDuhhJ/MRIqDkZX5pyjFHRRysS8vZ5AbqGEoFIb6pYHPZ+L/OC2Lc+xT8uHVVR5CAK/wQ==
   dependencies:
     uc.micro "^2.0.0"
+
+lodash@^4.17.11, lodash@^4.17.3:
+  version "4.17.21"
+  resolved "https://mirrors.cloud.tencent.com/npm/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 logform@^2.6.0, logform@^2.6.1:
   version "2.6.1"
@@ -875,7 +880,7 @@ punycode.js@2.3.1:
   resolved "https://mirrors.cloud.tencent.com/npm/punycode.js/-/punycode.js-2.3.1.tgz#6b53e56ad75588234e79f4affa90972c7dd8cdb7"
   integrity sha512-uxFIHU0YlHYhDQtV4R9J6a52SLx28BCjT+4ieh7IGbgwVJWO+km431c4yRlREUAsAmt/uMjQUyQHNEPf0M39CA==
 
-punycode@1.4.1:
+punycode@1.4.1, punycode@^1.4.1:
   version "1.4.1"
   resolved "https://mirrors.cloud.tencent.com/npm/punycode/-/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
   integrity sha512-jmYNElW7yvO7TV33CjSmvSiE2yco3bV2czu/OzDKdMNVZQWfxCblURLhf+47syQRBntjfLdd/H0egrzIG+oaFQ==
@@ -1006,6 +1011,25 @@ smtp-server@^3.13.5:
     nodemailer "6.9.15"
     punycode.js "2.3.1"
 
+spf-check@^0.4.3:
+  version "0.4.3"
+  resolved "https://mirrors.cloud.tencent.com/npm/spf-check/-/spf-check-0.4.3.tgz#5d5828083240f274589aca7fe84dc92075461304"
+  integrity sha512-OsPOHSdRqr2KKPOuM+6BiW/UVyzb8hnHmF+f0WFyI2VheXmheDKhKTe+6zkMNTYt+YudKCsc2YCriOzHcI4Tkg==
+  dependencies:
+    ipaddr.js "^1.8.1"
+    lodash "^4.17.11"
+    spf-parse "^1.0.4"
+    tldjs "^2.3.1"
+
+spf-parse@^1.0.4:
+  version "1.0.4"
+  resolved "https://mirrors.cloud.tencent.com/npm/spf-parse/-/spf-parse-1.0.4.tgz#853adb70ffb4048ea53dbdf71d08511a2595fa73"
+  integrity sha512-pTlemoyuyeMFc3BLDgWGr3Q10egb7TowzhtZk4gutJDoCXTKBAvzudAj5EqVMavBVa5aujMMmvjOW0seq+PlDg==
+  dependencies:
+    ipaddr.js "^1.2.0"
+    lodash "^4.17.3"
+    tldjs "^1.7.0"
+
 stack-trace@0.0.x:
   version "0.0.10"
   resolved "https://mirrors.cloud.tencent.com/npm/stack-trace/-/stack-trace-0.0.10.tgz#547c70b347e8d32b4e108ea1a2a159e5fdde19c0"
@@ -1027,6 +1051,20 @@ text-hex@1.0.x:
   version "1.0.0"
   resolved "https://mirrors.cloud.tencent.com/npm/text-hex/-/text-hex-1.0.0.tgz#69dc9c1b17446ee79a92bf5b884bb4b9127506f5"
   integrity sha512-uuVGNWzgJ4yhRaNSiubPY7OjISw4sw4E5Uv0wbjp+OzcbmVU/rsT8ujgcXJhn9ypzsgr5vlzpPqP+MBBKcGvbg==
+
+tldjs@^1.7.0:
+  version "1.8.0"
+  resolved "https://mirrors.cloud.tencent.com/npm/tldjs/-/tldjs-1.8.0.tgz#b9c16bd6de357b55ffcbe7d5be41f6b3ca76e3fa"
+  integrity sha512-oJHVrNdgPYlU7vszbSBMYDykdnJ8DmjaGML5KysOn2MIYtnpl1Yn+bCSF/vNo8vZkd0U+eRGg1qkQjHDLD/Teg==
+  dependencies:
+    punycode "^1.4.1"
+
+tldjs@^2.3.1:
+  version "2.3.1"
+  resolved "https://mirrors.cloud.tencent.com/npm/tldjs/-/tldjs-2.3.1.tgz#cf09c3eb5d7403a9e214b7d65f3cf9651c0ab039"
+  integrity sha512-W/YVH/QczLUxVjnQhFC61Iq232NWu3TqDdO0S/MtXVz4xybejBov4ud+CIwN9aYqjOecEqIy0PscGkwpG9ZyTw==
+  dependencies:
+    punycode "^1.4.1"
 
 tlds@1.252.0:
   version "1.252.0"
